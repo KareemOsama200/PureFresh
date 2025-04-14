@@ -1,23 +1,24 @@
 import os
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_login import LoginManager
+from werkzeug.security import generate_password_hash
 
-
+# قاعدة البيانات الأساسية (Base)
 class Base(DeclarativeBase):
     pass
 
-
+# إعداد SQLAlchemy
 db = SQLAlchemy(model_class=Base)
-# create the app
+
+# إنشاء التطبيق
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev_secret_key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
 
-# configure the database, relative to the app instance folder
+# تكوين قاعدة البيانات (يتم أخذ الرابط من متغير البيئة DATABASE_URL)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///purefresh.db")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
@@ -25,29 +26,28 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Configure upload folders
+# إعدادات مجلدات التحميل
 app.config["UPLOAD_FOLDER_PRODUCTS"] = "static/uploads/products"
 app.config["UPLOAD_FOLDER_LOGO"] = "static/uploads/logo"
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max upload
 
-# initialize the login manager
+# إعدادات مدير تسجيل الدخول
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'يرجى تسجيل الدخول للوصول إلى هذه الصفحة'
 
-# initialize the app with the extension, flask-sqlalchemy >= 3.0.x
+# تهيئة التطبيق مع SQLAlchemy
 db.init_app(app)
 
 with app.app_context():
-    # Make sure to import the models here or their tables won't be created
+    # التأكد من استيراد الموديلات هنا لكي يتم إنشاء الجداول
     import models  # noqa: F401
 
     db.create_all()
-    
-    # Initialize admin user if it doesn't exist
+
+    # تهيئة المستخدم الإداري إذا لم يكن موجودًا
     from models import User
-    from werkzeug.security import generate_password_hash
     
     admin = User.query.filter_by(username='admin').first()
     if not admin:
@@ -66,5 +66,5 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
 
-# Import routes after app is initialized to avoid circular imports
+# استيراد المسارات بعد تهيئة التطبيق لتجنب الاستيراد الدائري
 from routes import *
