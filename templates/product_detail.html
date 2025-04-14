@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ product.name }} - Pure Fresh{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="product-detail">
+        <div class="product-detail-img">
+            {% if product.image_file %}
+                <img src="{{ url_for('static', filename='uploads/products/' + product.image_file) }}" alt="{{ product.name }}">
+            {% elif product.image_url %}
+                <img src="{{ product.image_url }}" alt="{{ product.name }}">
+            {% else %}
+                <img src="https://via.placeholder.com/500x500.png?text=Pure+Fresh" alt="صورة بديلة">
+            {% endif %}
+        </div>
+        
+        <div class="product-detail-info">
+            <h1>{{ product.name }}</h1>
+            
+            <div class="mb-4">
+                <p class="text-muted">{{ product.description }}</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('add_to_cart') }}">
+                {{ form.hidden_tag() }}
+                {{ form.product_id }}
+                
+                <div class="product-price-options mb-4">
+                    <div id="unit-price-option" class="price-option active">
+                        <div class="fw-bold">سعر القطعة</div>
+                        <div class="price">{{ product.unit_price }} جنيه</div>
+                    </div>
+                    
+                    {% if product.carton_price %}
+                        <div id="carton-price-option" class="price-option">
+                            <div class="fw-bold">سعر الكرتونة</div>
+                            <div id="carton-price" class="price" data-price="{{ product.carton_price }}">{{ product.carton_price }} جنيه</div>
+                            {% if product.carton_quantity %}
+                                <div class="small text-muted">تحتوي على {{ product.carton_quantity }} وحدة</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {{ form.is_carton(class="d-none") }}
+                
+                <div class="mb-3">
+                    <label for="quantity" class="form-label">الكمية</label>
+                    <div class="input-group" style="width: 150px;">
+                        <button type="button" class="btn btn-outline-primary quantity-decrement">-</button>
+                        {{ form.quantity(class="form-control text-center", value=1, min=1) }}
+                        <button type="button" class="btn btn-outline-primary quantity-increment">+</button>
+                    </div>
+                    {% if form.quantity.errors %}
+                        {% for error in form.quantity.errors %}
+                            <div class="text-danger mt-1">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="d-grid gap-2">
+                    {% if current_user.is_authenticated %}
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">تسجيل الدخول للشراء</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

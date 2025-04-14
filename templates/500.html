@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}500 - خطأ في الخادم - Pure Fresh{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="py-5">
+        <h1 class="display-1 text-danger">500</h1>
+        <h2 class="mb-4">عفواً، حدث خطأ في الخادم!</h2>
+        <p class="lead mb-5">نواجه بعض المشاكل التقنية. يرجى المحاولة مرة أخرى لاحقًا</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-home me-2"></i> العودة إلى الصفحة الرئيسية
+        </a>
+    </div>
+</div>
+{% endblock %}

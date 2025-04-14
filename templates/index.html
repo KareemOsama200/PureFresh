@@ -1,0 +1,125 @@
+{% extends "layout.html" %}
+
+{% block title %}Pure Fresh - متجر منتجات النظافة{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="container">
+        <h1>منتجات نظافة طبيعية وآمنة</h1>
+        <p>اكتشف مجموعتنا المميزة من منتجات النظافة والصابون عالية الجودة بأسعار مناسبة وتوصيل سريع إلى جميع أنحاء مصر</p>
+        <a href="{{ url_for('product_list') }}" class="btn btn-primary btn-lg">تسوق الآن</a>
+    </div>
+</div>
+
+<div class="container">
+    <!-- المنتجات المميزة -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>منتجات مميزة</h2>
+            <a href="{{ url_for('product_list') }}" class="btn btn-outline-primary">عرض الكل</a>
+        </div>
+        
+        <div class="row">
+            {% if products %}
+                {% for product in products %}
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="card h-100">
+                            {% if product.image_file %}
+                                <img src="{{ url_for('static', filename='uploads/products/' + product.image_file) }}" class="card-img-top" alt="{{ product.name }}">
+                            {% elif product.image_url %}
+                                <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                            {% else %}
+                                <img src="https://via.placeholder.com/300x200.png?text=Pure+Fresh" class="card-img-top" alt="صورة بديلة">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="card-text">{{ product.description|truncate(100) }}</p>
+                                <div class="price">{{ product.unit_price }} جنيه</div>
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary w-100">عرض المنتج</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        لا توجد منتجات متاحة حاليًا. تفضل بزيارتنا لاحقًا.
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+    
+    <!-- مميزات المتجر -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">لماذا تختار Pure Fresh؟</h2>
+        
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-leaf fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title h4">منتجات طبيعية</h3>
+                        <p class="card-text">نقدم منتجات نظافة وصابون طبيعية خالية من المواد الكيميائية الضارة وآمنة للاستخدام اليومي.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-truck fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title h4">توصيل سريع</h3>
+                        <p class="card-text">نقدم خدمة توصيل سريعة لجميع أنحاء مصر مع إمكانية تتبع طلبك لحظة بلحظة حتى وصوله.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-tags fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title h4">أسعار تنافسية</h3>
+                        <p class="card-text">نقدم أفضل المنتجات بأسعار تنافسية مع إمكانية الاستفادة من العروض والخصومات المستمرة.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- كيفية الطلب -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">كيفية الطلب</h2>
+        
+        <div class="row">
+            <div class="col-md-3 col-6 text-center mb-4">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width:80px; height:80px;">
+                    <i class="fas fa-user-plus fa-2x"></i>
+                </div>
+                <h3 class="h5">سجل حساب</h3>
+            </div>
+            
+            <div class="col-md-3 col-6 text-center mb-4">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width:80px; height:80px;">
+                    <i class="fas fa-shopping-cart fa-2x"></i>
+                </div>
+                <h3 class="h5">أضف للسلة</h3>
+            </div>
+            
+            <div class="col-md-3 col-6 text-center mb-4">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width:80px; height:80px;">
+                    <i class="fas fa-credit-card fa-2x"></i>
+                </div>
+                <h3 class="h5">أكمل الشراء</h3>
+            </div>
+            
+            <div class="col-md-3 col-6 text-center mb-4">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width:80px; height:80px;">
+                    <i class="fas fa-box-open fa-2x"></i>
+                </div>
+                <h3 class="h5">استلم طلبك</h3>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

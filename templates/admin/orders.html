@@ -1,0 +1,243 @@
+{% extends "layout.html" %}
+
+{% block title %}إدارة الطلبات - Pure Fresh{% endblock %}
+
+{% block extra_css %}
+<style>
+    #tracking-map {
+        height: 300px;
+        width: 100%;
+        margin-top: 15px;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if order and action == 'detail' %}
+        <!-- Single Order View -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>تفاصيل الطلب #{{ order.id }}</h1>
+            <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-right me-2"></i> العودة إلى الطلبات
+            </a>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="admin-card mb-4">
+                    <h2 class="admin-card-title">معلومات الطلب</h2>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h5>رقم الطلب</h5>
+                                <p>#{{ order.id }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <h5>تاريخ الطلب</h5>
+                                <p>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <h5>إجمالي الطلب</h5>
+                                <p>{{ order.total_amount|round(2) }} جنيه</p>
+                            </div>
+                            {% if order.discount_amount %}
+                                <div class="mb-3">
+                                    <h5>الخصم</h5>
+                                    <p>{{ order.discount_amount|round(2) }} جنيه</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h5>حالة الطلب</h5>
+                                <p><span class="badge order-status-badge">{{ order.status }}</span></p>
+                            </div>
+                            <div class="mb-3">
+                                <h5>العنوان</h5>
+                                <p>{{ order.shipping_address }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <h5>المحافظة</h5>
+                                <p>{{ order.shipping_governorate }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <h5>رقم الهاتف</h5>
+                                <p>{{ order.shipping_phone }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 class="h5 mb-3">منتجات الطلب</h3>
+                    <div class="table-responsive">
+                        <table class="admin-data-table table">
+                            <thead>
+                                <tr>
+                                    <th>المنتج</th>
+                                    <th>السعر</th>
+                                    <th>الكمية</th>
+                                    <th>النوع</th>
+                                    <th>الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items %}
+                                    <tr>
+                                        <td>{{ item.name }}</td>
+                                        <td>{{ item.price|round(2) }} جنيه</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>{% if item.is_carton %}كرتونة{% else %}وحدة{% endif %}</td>
+                                        <td>{{ item.subtotal|round(2) }} جنيه</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="4" class="text-end">الإجمالي</th>
+                                    <th>{{ order.total_amount|round(2) }} جنيه</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    {% if order.location_lat and order.location_lng %}
+                        <h3 class="h5 mb-3">موقع التوصيل</h3>
+                        <div id="tracking-map" data-lat="{{ order.location_lat }}" data-lng="{{ order.location_lng }}"></div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="admin-card mb-4">
+                    <h2 class="admin-card-title">معلومات العميل</h2>
+                    
+                    <div class="mb-3">
+                        <h5>الاسم</h5>
+                        <p>{{ customer.full_name }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h5>البريد الإلكتروني</h5>
+                        <p>{{ customer.email }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h5>رقم الهاتف</h5>
+                        <p>{{ customer.phone }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h5>العنوان</h5>
+                        <p>{{ customer.address }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h5>المحافظة</h5>
+                        <p>{{ customer.governorate }}</p>
+                    </div>
+                </div>
+                
+                <div class="admin-card">
+                    <h2 class="admin-card-title">تحديث حالة الطلب</h2>
+                    
+                    <form method="POST" action="{{ url_for('admin_order_detail', order_id=order.id) }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="status" class="form-label">{{ form.status.label }}</label>
+                            {{ form.status(class="form-select") }}
+                            {% if form.status.errors %}
+                                {% for error in form.status.errors %}
+                                    <div class="text-danger mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Orders List -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>إدارة الطلبات</h1>
+        </div>
+        
+        <div class="admin-card">
+            <div class="mb-4">
+                <h4>تصفية الطلبات حسب الحالة</h4>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a href="{{ url_for('admin_orders') }}" class="btn btn-sm {% if current_filter == '' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        جميع الطلبات
+                    </a>
+                    <a href="{{ url_for('admin_orders', status='جاري التحضير') }}" class="btn btn-sm {% if current_filter == 'جاري التحضير' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        جاري التحضير
+                    </a>
+                    <a href="{{ url_for('admin_orders', status='تم الشحن') }}" class="btn btn-sm {% if current_filter == 'تم الشحن' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        تم الشحن
+                    </a>
+                    <a href="{{ url_for('admin_orders', status='في الطريق') }}" class="btn btn-sm {% if current_filter == 'في الطريق' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        في الطريق
+                    </a>
+                    <a href="{{ url_for('admin_orders', status='تم التوصيل') }}" class="btn btn-sm {% if current_filter == 'تم التوصيل' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        تم التوصيل
+                    </a>
+                    <a href="{{ url_for('admin_orders', status='مرفوض') }}" class="btn btn-sm {% if current_filter == 'مرفوض' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        مرفوض
+                    </a>
+                    <a href="{{ url_for('admin_orders', status='تم الإلغاء') }}" class="btn btn-sm {% if current_filter == 'تم الإلغاء' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        تم الإلغاء
+                    </a>
+                </div>
+            </div>
+            
+            {% if orders %}
+                <div class="table-responsive">
+                    <table class="admin-data-table table">
+                        <thead>
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>اسم العميل</th>
+                                <th>المبلغ</th>
+                                <th>العنوان</th>
+                                <th>الحالة</th>
+                                <th>التاريخ</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                                <tr>
+                                    <td>#{{ order.id }}</td>
+                                    <td>{{ order.customer.full_name }}</td>
+                                    <td>{{ order.total_amount|round(2) }} جنيه</td>
+                                    <td>{{ order.shipping_governorate }}</td>
+                                    <td><span class="badge order-status-badge">{{ order.status }}</span></td>
+                                    <td>{{ order.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin_order_detail', order_id=order.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    لا توجد طلبات متاحة حاليًا.
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if order and action == 'detail' and order.location_lat and order.location_lng %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endif %}
+{% endblock %}

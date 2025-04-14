@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block title %}سلة التسوق - Pure Fresh{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">سلة التسوق</h1>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            {% if items %}
+                {% for item in items %}
+                    <div class="cart-item">
+                        {% if item.product.image_url %}
+                            <img src="{{ item.product.image_url }}" class="cart-item-img" alt="{{ item.product.name }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/80x80.png?text=Pure+Fresh" class="cart-item-img" alt="صورة بديلة">
+                        {% endif %}
+                        
+                        <div class="cart-item-info">
+                            <h5 class="cart-item-title">{{ item.product.name }}</h5>
+                            <p class="cart-item-price">
+                                {% if item.is_carton and item.product.carton_price %}
+                                    {{ item.product.carton_price }} جنيه (كرتونة)
+                                {% else %}
+                                    {{ item.product.unit_price }} جنيه
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <div class="cart-item-actions">
+                            <form method="POST" action="{{ url_for('update_cart', item_id=item.id) }}">
+                                <div class="input-group" style="width: 120px;">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quantity-decrement">-</button>
+                                    <input type="number" name="quantity" class="form-control cart-quantity" value="{{ item.quantity }}" min="1">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quantity-increment">+</button>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-outline-primary d-none">تحديث</button>
+                            </form>
+                            
+                            <form method="POST" action="{{ url_for('remove_from_cart', item_id=item.id) }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('product_list') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-right me-2"></i> متابعة التسوق
+                    </a>
+                    <a href="{{ url_for('checkout') }}" class="btn btn-primary">
+                        إتمام الطلب <i class="fas fa-arrow-left ms-2"></i>
+                    </a>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    سلة التسوق فارغة. <a href="{{ url_for('product_list') }}">تسوق الآن</a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="cart-summary">
+                <h4 class="mb-4">ملخص الطلب</h4>
+                
+                {% if items %}
+                    <div class="cart-items-summary">
+                        {% for item in items %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <div>
+                                    {{ item.product.name }} × {{ item.quantity }}
+                                    {% if item.is_carton %} (كرتونة) {% endif %}
+                                </div>
+                                <div>
+                                    {% if item.is_carton and item.product.carton_price %}
+                                        {{ (item.product.carton_price * item.quantity)|round(2) }} جنيه
+                                    {% else %}
+                                        {{ (item.product.unit_price * item.quantity)|round(2) }} جنيه
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="cart-total">
+                        <span>المجموع</span>
+                        <span>{{ total|round(2) }} جنيه</span>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-lg">
+                            إتمام الطلب
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                        <p>سلة التسوق فارغة</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

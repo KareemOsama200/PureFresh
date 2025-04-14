@@ -1,0 +1,134 @@
+{% extends "layout.html" %}
+
+{% block title %}إدارة المنتجات - Pure Fresh{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>إدارة المنتجات</h1>
+        <a href="{{ url_for('admin_add_product') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i> إضافة منتج جديد
+        </a>
+    </div>
+    
+    {% if action == 'detail' %}
+        <!-- Single Product View -->
+        <div class="admin-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h3">{{ product.name }}</h2>
+                <div>
+                    <a href="{{ url_for('admin_edit_product', product_id=product.id) }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit me-1"></i> تعديل
+                    </a>
+                    <form method="POST" action="{{ url_for('admin_delete_product', product_id=product.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟')">
+                            <i class="fas fa-trash-alt me-1"></i> حذف
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    {% if product.image_file %}
+                        <img src="{{ url_for('static', filename='uploads/products/' + product.image_file) }}" alt="{{ product.name }}" class="img-fluid rounded">
+                    {% elif product.image_url %}
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="img-fluid rounded">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x300.png?text=Pure+Fresh" alt="صورة بديلة" class="img-fluid rounded">
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <h5>الوصف</h5>
+                        <p>{{ product.description }}</p>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5>سعر الوحدة</h5>
+                            <p>{{ product.unit_price }} جنيه</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>سعر الكرتونة</h5>
+                            <p>{% if product.carton_price %}{{ product.carton_price }} جنيه{% else %}غير متوفر{% endif %}</p>
+                        </div>
+                    </div>
+                    
+                    {% if product.carton_quantity %}
+                        <div class="mb-3">
+                            <h5>عدد الوحدات في الكرتونة</h5>
+                            <p>{{ product.carton_quantity }} وحدة</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <h5>تاريخ الإضافة</h5>
+                        <p>{{ product.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h5>آخر تحديث</h5>
+                        <p>{{ product.updated_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Products List -->
+        <div class="admin-card">
+            {% if products %}
+                <div class="table-responsive">
+                    <table class="admin-data-table table">
+                        <thead>
+                            <tr>
+                                <th>صورة</th>
+                                <th>الاسم</th>
+                                <th>سعر الوحدة</th>
+                                <th>سعر الكرتونة</th>
+                                <th>تاريخ الإضافة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                                <tr>
+                                    <td>
+                                        {% if product.image_file %}
+                                            <img src="{{ url_for('static', filename='uploads/products/' + product.image_file) }}" alt="{{ product.name }}" style="height: 50px; width: auto;" class="rounded">
+                                        {% elif product.image_url %}
+                                            <img src="{{ product.image_url }}" alt="{{ product.name }}" style="height: 50px; width: auto;" class="rounded">
+                                        {% else %}
+                                            <i class="fas fa-box fa-2x text-muted"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ product.unit_price }} جنيه</td>
+                                    <td>{% if product.carton_price %}{{ product.carton_price }} جنيه{% else %}-{% endif %}</td>
+                                    <td>{{ product.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin_edit_product', product_id=product.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="POST" action="{{ url_for('admin_delete_product', product_id=product.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    لا توجد منتجات متاحة حاليًا. <a href="{{ url_for('admin_add_product') }}">أضف منتج جديد</a>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

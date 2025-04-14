@@ -1,0 +1,200 @@
+{% extends "layout.html" %}
+
+{% block title %}تتبع الطلبات - Pure Fresh{% endblock %}
+
+{% block extra_css %}
+<style>
+    #tracking-map {
+        height: 300px;
+        width: 100%;
+        margin-top: 15px;
+        border-radius: 8px;
+    }
+    .order-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    .order-card-header {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .order-card-body {
+        padding: 15px;
+    }
+    .order-items {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    .order-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if 'order_id' not in request.path %}
+        <!-- Orders List Page -->
+        <h1 class="mb-4">طلباتي</h1>
+        
+        {% if orders %}
+            <div class="row">
+                {% for order in orders %}
+                    <div class="col-lg-6 mb-4">
+                        <div class="order-card">
+                            <div class="order-card-header">
+                                <div>
+                                    <h5 class="mb-0">طلب #{{ order.id }}</h5>
+                                    <small class="text-muted">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </div>
+                                <div>
+                                    <span class="badge order-status-badge">{{ order.status }}</span>
+                                </div>
+                            </div>
+                            <div class="order-card-body">
+                                <div class="mb-3">
+                                    <strong>إجمالي الطلب:</strong> {{ order.total_amount|round(2) }} جنيه
+                                </div>
+                                <div>
+                                    <strong>عنوان التوصيل:</strong> {{ order.shipping_address }}, {{ order.shipping_governorate }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> ليس لديك أي طلبات حتى الآن. <a href="{{ url_for('product_list') }}">تسوق الآن</a>
+            </div>
+        {% endif %}
+    {% else %}
+        <!-- Single Order Tracking Page -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>تتبع الطلب #{{ order.id }}</h1>
+            <a href="{{ url_for('order_list') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-right me-2"></i> العودة إلى الطلبات
+            </a>
+        </div>
+        
+        <div class="order-details mb-4">
+            <div id="order-status-indicator" data-status="{{ order.status }}">
+                <div class="order-status">
+                    <div class="status-step" data-status="جاري التحضير">
+                        <div class="status-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="status-text">جاري التحضير</div>
+                    </div>
+                    <div class="status-step" data-status="تم الشحن">
+                        <div class="status-icon">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <div class="status-text">تم الشحن</div>
+                    </div>
+                    <div class="status-step" data-status="في الطريق">
+                        <div class="status-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div class="status-text">في الطريق</div>
+                    </div>
+                    <div class="status-step" data-status="تم التوصيل">
+                        <div class="status-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="status-text">تم التوصيل</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <div class="order-meta">
+                        <div class="order-meta-item">
+                            <div class="order-meta-label">رقم الطلب</div>
+                            <div>#{{ order.id }}</div>
+                        </div>
+                        <div class="order-meta-item">
+                            <div class="order-meta-label">تاريخ الطلب</div>
+                            <div>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                        <div class="order-meta-item">
+                            <div class="order-meta-label">حالة الطلب</div>
+                            <div><span class="badge order-status-badge">{{ order.status }}</span></div>
+                        </div>
+                        <div class="order-meta-item">
+                            <div class="order-meta-label">إجمالي الطلب</div>
+                            <div>{{ order.total_amount|round(2) }} جنيه</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="order-meta">
+                        <div class="order-meta-item">
+                            <div class="order-meta-label">العنوان</div>
+                            <div>{{ order.shipping_address }}</div>
+                        </div>
+                        <div class="order-meta-item">
+                            <div class="order-meta-label">المحافظة</div>
+                            <div>{{ order.shipping_governorate }}</div>
+                        </div>
+                        <div class="order-meta-item">
+                            <div class="order-meta-label">رقم الهاتف</div>
+                            <div>{{ order.shipping_phone }}</div>
+                        </div>
+                        {% if order.discount_amount %}
+                            <div class="order-meta-item">
+                                <div class="order-meta-label">الخصم</div>
+                                <div>{{ order.discount_amount|round(2) }} جنيه</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <h4>منتجات الطلب</h4>
+                <ul class="order-items">
+                    {% for item in order.items %}
+                        <li class="order-item">
+                            <div>
+                                <strong>{{ item.name }}</strong>
+                                <div>{{ item.quantity }} × {{ item.price }} جنيه {% if item.is_carton %}(كرتونة){% endif %}</div>
+                            </div>
+                            <div>{{ item.subtotal|round(2) }} جنيه</div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            {% if order.location_lat and order.location_lng %}
+                <div class="mt-4">
+                    <h4>موقع التوصيل</h4>
+                    <div id="tracking-map" data-lat="{{ order.location_lat }}" data-lng="{{ order.location_lng }}"></div>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

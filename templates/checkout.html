@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+
+{% block title %}إتمام الطلب - Pure Fresh{% endblock %}
+
+{% block extra_css %}
+<style>
+    #map {
+        height: 300px;
+        width: 100%;
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+    .form-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">إتمام الطلب</h1>
+    
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="checkout-form">
+                <h4 class="mb-4">بيانات التوصيل</h4>
+                
+                <form method="POST" action="{{ url_for('checkout') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="shipping_address" class="form-label">{{ form.shipping_address.label }}</label>
+                        {{ form.shipping_address(class="form-control", rows=3, placeholder="أدخل عنوان التوصيل بالتفصيل") }}
+                        {% if form.shipping_address.errors %}
+                            {% for error in form.shipping_address.errors %}
+                                <div class="text-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="shipping_governorate" class="form-label">{{ form.shipping_governorate.label }}</label>
+                        {{ form.shipping_governorate(class="form-select") }}
+                        {% if form.shipping_governorate.errors %}
+                            {% for error in form.shipping_governorate.errors %}
+                                <div class="text-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="shipping_phone" class="form-label">{{ form.shipping_phone.label }}</label>
+                        {{ form.shipping_phone(class="form-control", placeholder="أدخل رقم الهاتف للتوصيل") }}
+                        {% if form.shipping_phone.errors %}
+                            {% for error in form.shipping_phone.errors %}
+                                <div class="text-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">حدد موقع التوصيل على الخريطة</label>
+                        <div id="map"></div>
+                        <div class="form-text">انقر على الخريطة لتحديد موقع التوصيل أو اسحب العلامة إلى الموقع الصحيح</div>
+                        {{ form.location_lat(id="location_lat") }}
+                        {{ form.location_lng(id="location_lng") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="discount_code" class="form-label">{{ form.discount_code.label }}</label>
+                        {{ form.discount_code(class="form-control", placeholder="أدخل كود الخصم إن وجد") }}
+                        {% if form.discount_code.errors %}
+                            {% for error in form.discount_code.errors %}
+                                <div class="text-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-lg-5">
+            <div class="cart-summary">
+                <h4 class="mb-4">ملخص الطلب</h4>
+                
+                <div class="cart-items-summary">
+                    {% for item in items %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                {{ item.product.name }} × {{ item.quantity }}
+                                {% if item.is_carton %} (كرتونة) {% endif %}
+                            </div>
+                            <div>
+                                {% if item.is_carton and item.product.carton_price %}
+                                    {{ (item.product.carton_price * item.quantity)|round(2) }} جنيه
+                                {% else %}
+                                    {{ (item.product.unit_price * item.quantity)|round(2) }} جنيه
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <hr>
+                
+                <div class="cart-total">
+                    <span>المجموع</span>
+                    <span>{{ total|round(2) }} جنيه</span>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-info-circle me-2"></i>
+                يتم الدفع عند الاستلام فقط
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

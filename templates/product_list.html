@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block title %}المنتجات - Pure Fresh{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>منتجات النظافة والصابون</h1>
+    </div>
+    
+    <div class="row">
+        {% if products %}
+            {% for product in products %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100">
+                        {% if product.image_file %}
+                            <img src="{{ url_for('static', filename='uploads/products/' + product.image_file) }}" class="card-img-top" alt="{{ product.name }}">
+                        {% elif product.image_url %}
+                            <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/300x200.png?text=Pure+Fresh" class="card-img-top" alt="صورة بديلة">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">{{ product.description|truncate(100) }}</p>
+                            <div class="price">{{ product.unit_price }} جنيه</div>
+                            {% if product.carton_price %}
+                                <div class="text-muted small mb-3">الكرتونة: {{ product.carton_price }} جنيه</div>
+                            {% endif %}
+                            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary w-100">عرض المنتج</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    لا توجد منتجات متاحة حاليًا. تفضل بزيارتنا لاحقًا.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

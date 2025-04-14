@@ -1,0 +1,195 @@
+{% extends "layout.html" %}
+
+{% block title %}إدارة أكواد الخصم - Pure Fresh{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>إدارة أكواد الخصم</h1>
+        {% if not form or action != 'add' %}
+            <a href="{{ url_for('admin_add_discount') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> إضافة كود خصم جديد
+            </a>
+        {% endif %}
+    </div>
+    
+    {% if form %}
+        <!-- Add/Edit Discount Form -->
+        <div class="admin-card mb-4">
+            <h2 class="admin-card-title">
+                {% if action == 'add' %}
+                    إضافة كود خصم جديد
+                {% else %}
+                    تعديل كود الخصم
+                {% endif %}
+            </h2>
+            
+            <form method="POST" action="{{ action == 'add' and url_for('admin_add_discount') or url_for('admin_edit_discount', discount_id=discount.id) }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="code" class="form-label">{{ form.code.label }}</label>
+                        {{ form.code(class="form-control", placeholder="أدخل كود الخصم") }}
+                        {% if form.code.errors %}
+                            {% for error in form.code.errors %}
+                                <div class="text-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="discount_type" class="form-label">{{ form.discount_type.label }}</label>
+                        {{ form.discount_type(class="form-select") }}
+                        {% if form.discount_type.errors %}
+                            {% for error in form.discount_type.errors %}
+                                <div class="text-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="value" class="form-label">{{ form.value.label }}</label>
+                        {{ form.value(class="form-control", placeholder="أدخل قيمة الخصم") }}
+                        <div class="form-text">نسبة مئوية أو مبلغ ثابت حسب نوع الخصم</div>
+                        {% if form.value.errors %}
+                            {% for error in form.value.errors %}
+                                <div class="text-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="valid_from" class="form-label">{{ form.valid_from.label }}</label>
+                        {{ form.valid_from(class="form-control datepicker", placeholder="YYYY-MM-DD") }}
+                        {% if form.valid_from.errors %}
+                            {% for error in form.valid_from.errors %}
+                                <div class="text-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="valid_until" class="form-label">{{ form.valid_until.label }}</label>
+                        {{ form.valid_until(class="form-control datepicker", placeholder="YYYY-MM-DD") }}
+                        <div class="form-text">اتركه فارغًا إذا كان غير محدد المدة</div>
+                        {% if form.valid_until.errors %}
+                            {% for error in form.valid_until.errors %}
+                                <div class="text-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="max_uses" class="form-label">{{ form.max_uses.label }}</label>
+                        {{ form.max_uses(class="form-control", placeholder="أدخل الحد الأقصى") }}
+                        <div class="form-text">اتركه فارغًا إذا كان غير محدود</div>
+                        {% if form.max_uses.errors %}
+                            {% for error in form.max_uses.errors %}
+                                <div class="text-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3 d-flex align-items-center">
+                        <div class="form-check form-switch mt-4">
+                            {{ form.is_active(class="form-check-input") }}
+                            <label class="form-check-label" for="is_active">{{ form.is_active.label }}</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2 mt-4">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('admin_discounts') }}" class="btn btn-outline-secondary">إلغاء</a>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+    
+    <!-- Discounts List -->
+    <div class="admin-card">
+        <h2 class="admin-card-title">أكواد الخصم</h2>
+        
+        {% if discounts %}
+            <div class="table-responsive">
+                <table class="admin-data-table table">
+                    <thead>
+                        <tr>
+                            <th>الكود</th>
+                            <th>النوع</th>
+                            <th>القيمة</th>
+                            <th>تاريخ البداية</th>
+                            <th>تاريخ الانتهاء</th>
+                            <th>الاستخدام</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for discount in discounts %}
+                            <tr>
+                                <td>{{ discount.code }}</td>
+                                <td>
+                                    {% if discount.discount_type == 'percentage' %}
+                                        نسبة مئوية
+                                    {% else %}
+                                        مبلغ ثابت
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if discount.discount_type == 'percentage' %}
+                                        {{ discount.value }}%
+                                    {% else %}
+                                        {{ discount.value }} جنيه
+                                    {% endif %}
+                                </td>
+                                <td>{{ discount.valid_from.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    {% if discount.valid_until %}
+                                        {{ discount.valid_until.strftime('%Y-%m-%d') }}
+                                    {% else %}
+                                        غير محدد
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if discount.max_uses %}
+                                        {{ discount.used_count }}/{{ discount.max_uses }}
+                                    {% else %}
+                                        {{ discount.used_count }}/غير محدود
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if discount.is_active %}
+                                        <span class="badge bg-success">نشط</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">غير نشط</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin_edit_discount', discount_id=discount.id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('admin_delete_discount', discount_id=discount.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من حذف كود الخصم هذا؟')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                لا توجد أكواد خصم متاحة حاليًا. <a href="{{ url_for('admin_add_discount') }}">أضف كود خصم جديد</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
